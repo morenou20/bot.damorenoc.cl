@@ -29,5 +29,6 @@ jobs:
       - name: Unit tests
         run: npm test
         env:
-          OPENCODE_API_KEY: test-key-not-used-in-unit-tests
+          # Usar .env.test para tests unitarios
+          OPENCODE_API_KEY: test-provider-key-not-used-in-unit-tests
           BOT_INTERNAL_KEY: test-internal-key-not-used-in-unit-tests
