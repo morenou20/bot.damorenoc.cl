@@ -22,7 +22,7 @@ Todos requieren `Authorization: Bearer <BOT_INTERNAL_KEY>` excepto los probes:
 |---|---|---|
 | GET | `/healthz` | Liveness (`{ ok: true }`) |
 | GET | `/readyz` | Readiness |
-| POST | `/v1/chat` | Chat conversacional; body `{ messages, system??, model? }` → `{ text, model }` |
+| POST | `/v1/chat` | Chat conversacional; body `{ message, history?, systemPrompt?, maxTokens? }` → `{ text, model }` |
 | POST | `/v1/json` | Igual pero exige salida JSON válida del modelo |
 
 ## Cadena de fallback de modelos
@@ -52,26 +52,19 @@ npm run lint       # biome check src/ test/
 npm run build && npm start
 ```
 
-## Despliegue (as-built, servidor LAN)
+## Despliegue (servidor LAN; IA en espera)
 
-Código en `/opt/bot.damorenoc.cl`, imagen `localhost/bot-damorenoc:latest`,
-contenedor `bot-damorenoc` publicado solo en loopback:
+Código en `/opt/bot.damorenoc.cl`. Imagen preparada con Podman; servicio
+detenido y sin arranque automático por indicación del propietario.
+Quadlet: `~/.config/containers/systemd/bot-damorenoc.container`.
+Ver `api.damorenoc.cl/ops/DEPLOY.md` y `ops/RUNBOOK.md` del repositorio hermano.
 
-```bash
-podman build -t localhost/bot-damorenoc:latest .
-podman run -d --name bot-damorenoc --restart always \
-  -p 127.0.0.1:18010:8080 \
-  --env-file .env \
-  localhost/bot-damorenoc:latest
-```
+El proveedor directo rechazó modelos gratuitos desde este cliente. La clave
+está preservada en `.env`, permisos 600. No activar hasta resolver la integración;
+el posible puente histórico a OpenClaw no aparece en el código actual.
+OpenClaw queda a cargo del propietario.
 
-La API lo consume vía `BOT_API_URL=http://127.0.0.1:18010` (variable en el
-`.env` de la API). Verificación rápida:
-
-```bash
-curl -fsS http://127.0.0.1:18010/healthz
-curl -fsS -X POST http://127.0.0.1:18010/v1/chat \
-  -H "Authorization: Bearer $BOT_INTERNAL_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"ping"}]}'
-```
+Cuando se autorice su activación, el bind interno debe ser `HOST=0.0.0.0` y
+la publicación `127.0.0.1:18010:8080`. La API requiere BOT_API_URL y el mismo
+BOT_INTERNAL_KEY. No usar el body `messages`: `/v1/chat` recibe `message`,
+`history` opcional, `systemPrompt` opcional y `maxTokens` opcional.

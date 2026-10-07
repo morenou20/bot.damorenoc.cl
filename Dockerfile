@@ -17,8 +17,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=build /app/package.json ./
+COPY --from=build /app/package-lock.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+
+RUN npm prune --omit=dev --ignore-scripts
 
 RUN addgroup -S app && adduser -S app -G app
 
